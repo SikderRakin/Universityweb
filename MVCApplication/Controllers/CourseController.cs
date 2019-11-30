@@ -1,4 +1,5 @@
-﻿using MVCApplication.Models;
+﻿using MVCApplication.DataAccess;
+using MVCApplication.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,26 @@ namespace MVCApplication.Controllers
 {
     public class CourseController : Controller
     {
+        private RouxAcademyDbContext db = new RouxAcademyDbContext();
+
         // GET: Course
         public ActionResult Index()
         {
             return View();
+        }
+
+        public ActionResult Online()
+        {
+            //var courses = db.Courses.Where(c => c.IsVirtual)
+            //                        .OrderBy(c => c.Name)
+            //                        .ToList();
+
+            var courses = from c in db.Courses
+                          where c.IsVirtual
+                          orderby c.Name
+                          select c;
+
+            return View(courses.ToList());
         }
 
         // GET: Course/Details/5
@@ -35,9 +52,13 @@ namespace MVCApplication.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    // TODO: Add insert logic here
+                    using (var context = new RouxAcademyDbContext())
+                    {
+                        context.Courses.Add(course);
+                        context.SaveChanges();
+                    }
 
-                    return RedirectToAction("Index");
+                        return RedirectToAction("Index");
                 }
 
                 return View(course);
